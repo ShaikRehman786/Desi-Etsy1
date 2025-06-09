@@ -8,9 +8,9 @@ router.get('/', ctrl.getAll); // ✅ Gets all products
 router.get('/:id', ctrl.getOne); // ✅ Get single product
 
 // Artisan routes
-router.get('/my', protect, restrictTo('Artisan'), ctrl.getMyProducts); // ✅ Now distinct
-router.post('/', protect, restrictTo('Artisan'), ctrl.create);
-router.put('/:id', protect, restrictTo('Artisan'), ctrl.update);
-router.delete('/:id', protect, restrictTo('Artisan'), ctrl.del);
+router.get('/my', protect, restrictTo('artisan'), ctrl.getMyProducts); // ✅ Now distinct
+router.post('/', protect, restrictTo('artisan'), ctrl.create);
+router.put('/:id', protect, restrictTo('artisan'), ctrl.update);
+router.delete('/:id', protect, restrictTo('artisan'), ctrl.del);
 
 module.exports = router;

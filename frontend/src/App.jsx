@@ -44,6 +44,11 @@ function App() {
         <Route path="/pay" element={<RazorpayPayment />} />
       </Routes>
       <ToastContainer position="top-right" />
+
+    {/* <Footer /> */}
+
+
+
     </CartProvider>
   );
 }

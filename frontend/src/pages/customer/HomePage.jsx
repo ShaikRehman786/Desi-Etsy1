@@ -1,7 +1,4 @@
 
-
-
-
 import { useEffect, useState } from 'react';
 import { getAllProducts } from '../../services/product';
 import ProductCard from '../artisan/ProductCard';

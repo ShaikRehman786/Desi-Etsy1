@@ -1,88 +1,3 @@
-// const Product = require('../models/product.model');
-
-
-// // public (GET)
-// exports.getAll = async(_, res) => {
-//     const products = await Product.find({isApproved:true}).populate('artisan','name');
-//     res.json(products);
-// };
-
-// exports.getOne = async (req, res) => {
-//     const product = await Product.findById(req.params.id).populate('artisan', 'name');
-//     if(!product || !product.isApproved)
-//         return res.status(404).json({message:'Product not found'});
-//     res.json(product);
-// };
-
-
-// // artisan CRUD and protected
-
-// // create
-// exports.create = async(req, res) => {
-//     const data = {...req.body, artisan:req.user._id, isApproved:false};
-//     const product = await Product.create(data);
-//     res.status(201).json(product)
-// };
-
-
-// // update
-
-// exports.update = async(req, res) => {
-//     const product = await Product.findOneAndUpdate(
-//         {_id: req.params.id, artisan:req.user._id},
-//         req.body,
-//         { new: true }
-//     );
-//     if(!product) return res.status(404).json({message:"Not found or no permission"});
-//     res.json(product);
-// };
-
-
-
-// // delete
-// exports.del = async(req, res) => {
-//     const product = await Product.findOneAndDelete({_id:req.params.id, artisan:req.user._id });
-//     if(!product) return res.status(404).json({message:"Not found or no permission"});
-//     res.json({message:"Deleted"})
-// };
-
-
-
-// // admin actions
-
-// // pending
-// exports.adminListPending = async(_, res) => {
-//     const pending = await Product.find({isApproved:false})
-//         .populate('artisan', 'name email');
-//     res.json(pending);
-// };
-
-
-// // approve
-
-// exports.adminApprove = async(req, res) =>{
-//     const p = await Product.findByIdAndUpdate(
-//         req.params.id, {isApproved:true}, {new:true}
-//     );
-//     if(!p) return res.status(404).json({message:"Not Found"});
-//     res.json(p);
-// };
-
-
-// exports.adminReject = async (req, res) => {
-//     await Product.findByIdAndDelete(req.params.id);
-//     res.json({message:'Rejected & Deleted'})
-// };
-
-
-
-
-
-
-
-
-
-
 
 
 const Product = require('../models/product.model');
@@ -148,16 +63,23 @@ exports.update = async (req, res) => {
 };
 
 // ARTISAN (DELETE product owned by artisan)
+
+
+
 exports.del = async (req, res) => {
+  console.log("Deleting ID:", req.params.id); // ← Add this line
+
   try {
-    const product = await Product.findOneAndDelete({ _id: req.params.id, artisan: req.user._id });
-    if (!product)
-      return res.status(404).json({ message: 'Product not found or no permission' });
-    res.json({ message: 'Product deleted' });
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    res.status(200).json({ message: "Deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to delete product', error: err.message });
+    res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // ADMIN (GET all pending approval products)
 exports.adminListPending = async (_, res) => {

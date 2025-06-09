@@ -1,31 +1,28 @@
+
+// src/components/Checkout.jsx
 import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Checkout() {
   const { cartItems, getTotal, refreshCart } = useCart();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  // Load Razorpay checkout.js script
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      if (window.Razorpay) {
-        resolve(true);
-        return;
-      }
+  // Load Razorpay checkout.js script once on mount
+  useEffect(() => {
+    if (!window.Razorpay) {
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
+      script.async = true;
       document.body.appendChild(script);
-    });
-  };
+    }
+  }, []);
 
-  // Handle successful payment verification response from backend
+  // Handle payment success and verify on backend
   const handlePaymentSuccess = async (response) => {
     try {
-      const res = await fetch("/api/payment/verify-payment", {
+      const res = await fetch("http://localhost:5000/api/payment/verify-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(response),
@@ -56,19 +53,18 @@ export default function Checkout() {
 
     setLoading(true);
 
-    const res = await loadRazorpayScript();
-    if (!res) {
-      alert("Failed to load Razorpay SDK");
+    if (!window.Razorpay) {
+      alert("Razorpay SDK failed to load");
       setLoading(false);
       return;
     }
 
     try {
-      // Create order on backend (note the updated path)
-      const orderRes = await fetch("/api/payment/create-order", {
+      // Create order on backend
+      const orderRes = await fetch("http://localhost:5000/api/payment/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: getTotal() * 100 }), // Amount in paise
+        body: JSON.stringify({ amount: getTotal() * 100 }), // amount in paise
       });
 
       if (!orderRes.ok) {
@@ -78,25 +74,31 @@ export default function Checkout() {
       const orderData = await orderRes.json();
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,  // Your Razorpay key from .env
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // from your .env
         amount: orderData.amount,
         currency: orderData.currency,
         name: "CraftKart",
         description: "Order Payment",
         order_id: orderData.id,
-        handler: function (response) {
-          handlePaymentSuccess(response);
-        },
+        handler: (response) => handlePaymentSuccess(response),
         prefill: {
-          email: "customer@example.com", // Replace with real user email if possible
-          contact: "9999999999", // Replace with real contact
+          email: "customer@example.com", // replace with logged-in user's email
+          contact: "9999999999",         // replace with logged-in user's contact
         },
-        theme: {
-          color: "#2563eb",
-        },
+        theme: { color: "#2563eb" },
       };
 
       const paymentObject = new window.Razorpay(options);
+
+      paymentObject.on("payment.failed", (response) => {
+        alert("Payment failed: " + response.error.description);
+        setLoading(false);
+      });
+
+      paymentObject.on("popup.closed", () => {
+        setLoading(false);
+      });
+
       paymentObject.open();
     } catch (err) {
       alert("Failed to initiate payment");
@@ -114,15 +116,15 @@ export default function Checkout() {
       ) : (
         <>
           <ul className="mb-4">
-            {cartItems.map(({ product, quantity }) => (
+            {cartItems.map(({ product, quantity }, idx) => (
               <li
-                key={product._id}
+                key={product ? product._id : `missing-${idx}`}
                 className="border-b py-2 flex justify-between"
               >
                 <span>
-                  {product.name} × {quantity}
+                  {product ? product.name : "Product not found"} × {quantity}
                 </span>
-                <span>₹{product.price * quantity}</span>
+                <span>₹{product ? product.price * quantity : 0}</span>
               </li>
             ))}
           </ul>

@@ -5,16 +5,16 @@ const cartCtrl = require("../controllers/cart.controller");
 const { protect, restrictTo } = require("../middlewares/auth.middleware");
 
 // Add product to cart
-router.post("/add", protect, restrictTo("Customer"), cartCtrl.addToCart);
+router.post("/add", protect, restrictTo("customer"), cartCtrl.addToCart);
 
 // Get cart items for logged-in user
-router.get("/", protect, restrictTo("Customer"), cartCtrl.getCart);
+router.get("/", protect, restrictTo("customer"), cartCtrl.getCart);
 
 // Update cart item quantity (increase or decrease)
 router.patch(
   "/update/:cartItemId",
   protect,
-  restrictTo("Customer"),
+  restrictTo("customer"),
   cartCtrl.updateCartItemQuantity
 );
 
@@ -24,7 +24,7 @@ router.patch(
 router.delete(
   "/remove/:cartItemId",
   protect,
-  restrictTo("Customer"),
+  restrictTo("customer"),
   cartCtrl.removeFromCart
 );
 

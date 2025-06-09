@@ -64,6 +64,7 @@ export const updateProduct = async (id, data) => {
 };
 
 export const deleteProduct = async (id) => {
+  console.log("Attempting to delete product with ID:", id);
   const res = await api.delete(`/products/${id}`);
   return res.data;
 };
